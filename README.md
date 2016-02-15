@@ -9,6 +9,6 @@ Donate version is same to this version,I just packed it.<br />
 <br />
 This version follow WTFPL License.<br />
 
-#Concat Me
+#Contact Me
 QQ:765569811 or 1943601164<br />
 E-Mail:FENGberd@gmail.com<br />
