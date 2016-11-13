@@ -167,7 +167,7 @@ public class NPC extends cn.nukkit.level.Location
 		pk.x=Float.parseFloat(String.valueOf(this.x));
 		pk.y=Float.parseFloat(String.valueOf(this.y+1.62));
 		pk.z=Float.parseFloat(String.valueOf(this.z));
-		pk.bodyYaw=pk.yaw=Float.parseFloat(String.valueOf(yaw));
+		pk.headYaw=pk.yaw=Float.parseFloat(String.valueOf(yaw));
 		pk.pitch=Float.parseFloat(String.valueOf(pitch));
 		pk.mode=0;
 		player.dataPacket(pk);
@@ -355,9 +355,8 @@ public class NPC extends cn.nukkit.level.Location
 
 	public void despawnFrom(Player player)
 	{
-		RemovePlayerPacket pk=new RemovePlayerPacket();
+		RemoveEntityPacket pk=new RemoveEntityPacket();
 		pk.eid=this.getEID();
-		pk.uuid=this.uuid;
 		player.dataPacket(pk);
 		Server.getInstance().removePlayerListData(this.uuid,new Player[]{player});
 	}
@@ -398,7 +397,8 @@ public class NPC extends cn.nukkit.level.Location
 		}
 		AddPlayerPacket pk=new AddPlayerPacket();
 		pk.username=this.nametag;
-		pk.eid=this.getEID();
+		pk.entityUniqueId=this.getEID();
+		pk.entityRuntimeId=this.getEID();
 		pk.uuid=this.uuid;
 		pk.x=Float.parseFloat(String.valueOf(this.x));
 		pk.y=Float.parseFloat(String.valueOf(this.y));
@@ -410,12 +410,12 @@ public class NPC extends cn.nukkit.level.Location
 		pk.speedZ=0;
 		pk.item=this.handItem;
 		pk.metadata=new EntityMetadata()
-			.putByte(Entity.DATA_FLAGS,0)
-			.putShort(Entity.DATA_AIR,300)
+			.putLong(Entity.DATA_FLAGS,0)
+			.putShort(Entity.DATA_AIR,400)
+			.putShort(Entity.DATA_MAX_AIR,400)
 			.putString(Entity.DATA_NAMETAG,this.nametag)
-			.putByte(Entity.DATA_SHOW_NAMETAG,1)
-			.putByte(Entity.DATA_SILENT,0)
-			.putByte(Entity.DATA_NO_AI,0);
+			.putLong(Entity.DATA_LEAD_HOLDER_EID,-1)
+			.putFloat(Entity.DATA_SCALE,1f);
 		player.dataPacket(pk);
 		Server.getInstance().updatePlayerListData(this.uuid,this.getEID(),this.nametag,this.skin,new Player[]{player});
 		return true;
@@ -428,8 +428,7 @@ public class NPC extends cn.nukkit.level.Location
 		pk.x=Utils.cast(this.x);
 		pk.y=Utils.cast(this.y+1.62);
 		pk.z=Utils.cast(this.z);
-		pk.bodyYaw=Utils.cast(this.yaw);
-		pk.yaw=Utils.cast(this.yaw);
+		pk.headYaw=pk.yaw=Utils.cast(this.yaw);
 		pk.pitch=Utils.cast(this.pitch);
 		pk.mode=0;
 		for(Object p:Main.getInstance().getServer().getOnlinePlayers().values())

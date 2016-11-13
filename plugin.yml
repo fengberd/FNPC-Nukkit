@@ -1,14 +1,9 @@
 name: FNPC
 main: net.FENGberd.Nukkit.FNPC.Main
-version: "1.1.5"
+version: "1.1.6"
 api: ["1.0.0"]
 author: "FENGberd"
-description: The best NPC Plugin!
-commands:
- fnpc:
-  permission: FNPC.command.fnpc
-  description: "NPC系统指令"
-  usage: "使用 /fnpc help 查看帮助"
+description: "A simple NPC plugin."
 permissions:
  FNPC.*:
   description: "根权限"
