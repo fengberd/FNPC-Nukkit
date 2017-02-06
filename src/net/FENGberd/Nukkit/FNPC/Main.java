@@ -6,9 +6,12 @@ import cn.nukkit.*;
 import cn.nukkit.item.*;
 import cn.nukkit.event.*;
 import cn.nukkit.utils.*;
-import cn.nukkit.event.server.*;
+import cn.nukkit.command.*;
 import cn.nukkit.command.data.*;
+import cn.nukkit.event.player.*;
+import cn.nukkit.event.server.*;
 import cn.nukkit.network.protocol.*;
+import cn.nukkit.command.data.args.*;
 
 import net.FENGberd.Nukkit.FNPC.npc.*;
 import net.FENGberd.Nukkit.FNPC.utils.*;
@@ -17,6 +20,7 @@ import net.FENGberd.Nukkit.FNPC.commands.*;
 import net.FENGberd.Nukkit.FNPC.utils.Utils;
 
 import com.google.gson.*;
+import co.aikar.timings.Timings;
 
 @SuppressWarnings("unused")
 public class Main extends cn.nukkit.plugin.PluginBase implements cn.nukkit.event.Listener
@@ -88,10 +92,6 @@ public class Main extends cn.nukkit.plugin.PluginBase implements cn.nukkit.event
 		QuickSystemTask quickSystemTask=new QuickSystemTask(this);
 		npcCommand=new NpcCommand();
 		this.getServer().getCommandMap().register("FNPC",npcCommand);
-		//this.getServer().getCommandMap().register("FNPC",new NpcCommandForServer());
-		
-		//this.getServer().getCommandMap().register("FNPC",new AddCommand());
-		//this.getServer().getCommandMap().register("FNPC",new RemoveCommand());
 		
 		this.getServer().getPluginManager().registerEvents(this,this);
 		this.getServer().getScheduler().scheduleRepeatingTask(quickSystemTask,1);
@@ -111,44 +111,56 @@ public class Main extends cn.nukkit.plugin.PluginBase implements cn.nukkit.event
 			CommandStepPacket pk=Utils.cast(event.getPacket());
 			if(pk.command.startsWith("fnpc "))
 			{
-				if(commandStepPacket.args!=null && commandStepPacket.args.size()>0)
+				String commandText=pk.command;
+				if(pk.args!=null)
 				{
-					CommandParameter[] pars=npcCommand.getCommandParameters(commandStepPacket.overload);
+					CommandParameter[] pars=npcCommand.getCommandParameters(pk.overload);
 					if(pars!=null)
 					{
-						for(CommandParameter par : pars) {
-						JsonElement arg = commandStepPacket.args.get(par.name);
-						if(arg != null) {
-						switch(par.type) {
-						case CommandParameter.ARG_TYPE_TARGET:
-						CommandArg rules = new Gson().fromJson(arg, CommandArg.class);
-						commandText += " " + rules.getRules()[0].getValue();
-						break;
-						case CommandParameter.ARG_TYPE_BLOCK_POS:
-						CommandArgBlockVector bv = new Gson().fromJson(arg, CommandArgBlockVector.class);
-						commandText += " " + bv.getX() + " " + bv.getY() + " " + bv.getZ();
-						break;
-						case CommandParameter.ARG_TYPE_STRING:
-						case CommandParameter.ARG_TYPE_STRING_ENUM:
-						case CommandParameter.ARG_TYPE_RAW_TEXT:
-						String string = new Gson().fromJson(arg, String.class);
-						commandText += " " + string;
-						break;
-						default:
-						commandText += " " + arg.toString();
-						break;
-						}
-						}
+						for(CommandParameter par:pars)
+						{
+							JsonElement arg=pk.args.get(par.name);
+							if(arg!=null)
+							{
+								switch(par.type)
+								{
+								case CommandParameter.ARG_TYPE_TARGET:
+									CommandArg rules=new Gson().fromJson(arg,CommandArg.class);
+									commandText+=" "+rules.getRules()[0].getValue();
+									break;
+								case CommandParameter.ARG_TYPE_BLOCK_POS:
+									CommandArgBlockVector bv=new Gson().fromJson(arg,CommandArgBlockVector.class);
+									commandText+=" "+bv.getX()+" "+bv.getY()+" " + bv.getZ();
+									break;
+								case CommandParameter.ARG_TYPE_STRING:
+								case CommandParameter.ARG_TYPE_STRING_ENUM:
+								case CommandParameter.ARG_TYPE_RAW_TEXT:
+									String string=new Gson().fromJson(arg, String.class);
+									commandText+=" "+string;
+									break;
+								default:
+									commandText+=" "+arg.toString();
+									break;
+								}
+							}
 						}
 					}
-					else
+					PlayerCommandPreprocessEvent playerCommandPreprocessEvent=new PlayerCommandPreprocessEvent(event.getPlayer(),"/"+commandText);
+					this.getServer().getPluginManager().callEvent(playerCommandPreprocessEvent);
+					if(!playerCommandPreprocessEvent.isCancelled())
 					{
-						event.getPlayer().sendMessage(this.getServer().getLanguage().translateString(command.getUsage()));
+						Timings.playerCommandTimer.startTiming();
+						this.getServer().dispatchCommand(playerCommandPreprocessEvent.getPlayer(),playerCommandPreprocessEvent.getMessage().substring(1));
+						Timings.playerCommandTimer.stopTiming();
 					}
 				}
+				event.setCancelled(true);
 			}
 		}
-		NPC.packetReceive(event.getPlayer(),event.getPacket());
+		else
+		{
+			NPC.packetReceive(event.getPlayer(),event.getPacket());
+		}
 	}
 	
 	@EventHandler(priority=EventPriority.HIGH)
