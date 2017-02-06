@@ -93,7 +93,7 @@ public class NPC extends cn.nukkit.level.Location
 
 	public static void packetReceive(Player player,DataPacket packet)
 	{
-		if(packet.pid()==ProtocolInfo.INTERACT_PACKET && !packet.equals(NPC.packet_hash))
+		if(packet.pid()==ProtocolInfo.INTERACT_PACKET && !packet.equals(NPC.packet_hash) && ((InteractPacket)packet).action==InteractPacket.ACTION_LEFT_CLICK)
 		{
 			NPC.packet_hash=packet;
 			NPC.pool.values().stream().filter(npc->((InteractPacket)packet).target==npc.getEID()).forEach(npc->npc.onTouch(player));
@@ -395,6 +395,7 @@ public class NPC extends cn.nukkit.level.Location
 			this.despawnFrom(player);
 			return false;
 		}
+		Server.getInstance().updatePlayerListData(this.uuid,this.getEID(),this.nametag,this.skin,new Player[]{player});
 		AddPlayerPacket pk=new AddPlayerPacket();
 		pk.username=this.nametag;
 		pk.entityUniqueId=this.getEID();
@@ -409,15 +410,32 @@ public class NPC extends cn.nukkit.level.Location
 		pk.speedY=0;
 		pk.speedZ=0;
 		pk.item=this.handItem;
+		long flags=0x00;
+		flags^=1<<Entity.DATA_FLAG_CAN_SHOW_NAMETAG;
+		flags^=1<<Entity.DATA_FLAG_ALWAYS_SHOW_NAMETAG;
 		pk.metadata=new EntityMetadata()
-			.putLong(Entity.DATA_FLAGS,0)
+			.putLong(Entity.DATA_FLAGS,flags)
 			.putShort(Entity.DATA_AIR,400)
 			.putShort(Entity.DATA_MAX_AIR,400)
 			.putString(Entity.DATA_NAMETAG,this.nametag)
 			.putLong(Entity.DATA_LEAD_HOLDER_EID,-1)
 			.putFloat(Entity.DATA_SCALE,1f);
 		player.dataPacket(pk);
-		Server.getInstance().updatePlayerListData(this.uuid,this.getEID(),this.nametag,this.skin,new Player[]{player});
+		Server.getInstance().removePlayerListData(this.uuid,new Player[]{player});
+		// TODO: custom armors
+		Item[] armor=new Item[]
+		{
+			Item.get(Item.AIR),
+			Item.get(Item.AIR),
+			Item.get(Item.AIR),
+			Item.get(Item.AIR)
+		};
+        MobArmorEquipmentPacket armorPk=new MobArmorEquipmentPacket();
+        armorPk.eid=this.getEID();
+        armorPk.slots=armor;
+        armorPk.encode();
+        armorPk.isEncoded=true;
+		player.dataPacket(armorPk);
 		return true;
 	}
 

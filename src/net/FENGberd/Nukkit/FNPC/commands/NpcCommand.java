@@ -101,10 +101,6 @@ public class NpcCommand extends Command
 		try
 		{
 			NPC npc;
-			if(args.length<=0)
-			{
-				return false;
-			}
 			switch(args[0])
 			{
 			case "type":
@@ -428,6 +424,7 @@ public class NpcCommand extends Command
 					sender.sendMessage("[NPC] "+TextFormat.RED+"请在游戏中使用这个指令");
 				}
 				break;
+			default:
 			case "help":
 				sender.sendMessage(TextFormat.GREEN+"===NPC系统指令帮助===\n"+
 					TextFormat.GREEN+"所有指令前面必须加/fnpc \n"+
@@ -446,8 +443,6 @@ public class NpcCommand extends Command
 					TextFormat.YELLOW+"item <ID> <Item[:Damage]> - 设置NPC手持物品\n"+
 					TextFormat.YELLOW+"help - 查看帮助");
 				break;
-			default:
-				return false;
 			}
 		}
 		catch(Exception e)
@@ -457,13 +452,7 @@ public class NpcCommand extends Command
 		}
 		return true;
 	}
-	/*
-	@Override
-	public CommandDataVersions generateCustomCommandData(Player player)
-	{
-		return new CommandDataVersions();
-	}
-	*/
+	
 	public Map<String,CommandDataVersions> processCustomCommandData(Map<String,CommandDataVersions> data)
 	{
 		if(data.containsKey("fnpc"))
@@ -490,56 +479,3 @@ public class NpcCommand extends Command
 		return data;
 	}
 }
-
-
-/*package net.FENGberd.Nukkit.FNPC.commands;
-
-import cn.nukkit.lang.*;
-import cn.nukkit.command.*;
-
-import net.FENGberd.Nukkit.FNPC.*;
-
-public abstract class NpcCommand extends Command
-{
-	public NpcCommand(String subParm)
-	{
-		this(subParm,null,null);
-	}
-	
-	public NpcCommand(String subParm,String description)
-	{
-		this(subParm,description,null);
-	}
-	
-	public NpcCommand(String subParm,String description,String usage)
-	{
-		super("fnpc "+subParm,description==null?"%FNPC.command.fnpc."+subParm+".description":description,usage==null?"%FNPC.command.fnpc."+subParm+".usage":usage);
-		this.setPermission("FNPC.command.fnpc."+subParm.toLowerCase());
-		this.setAliases(new String[]{"npc "+subParm});
-	}
-	
-	@Override
-	public boolean execute(CommandSender sender,String commandLabel,String[] args)
-	{
-		if(!this.testPermission(sender))
-		{
-			return true;
-		}
-		try
-		{
-			if(!this.onExecute(sender,args))
-			{
-				sender.sendMessage(new TranslationContainer("commands.generic.usage",this.usageMessage));
-				return false;
-			}
-		}
-		catch(Exception e)
-		{
-			Main.getInstance().getLogger().error("Error while executing "+commandLabel+": ",e);
-		}
-		return true;
-	}
-	
-	public abstract boolean onExecute(CommandSender sender,String[] args) throws Exception;
-}
-*/

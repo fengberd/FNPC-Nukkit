@@ -145,6 +145,7 @@ public class Main extends cn.nukkit.plugin.PluginBase implements cn.nukkit.event
 							}
 						}
 					}
+					this.getLogger().warning(commandText);
 					PlayerCommandPreprocessEvent playerCommandPreprocessEvent=new PlayerCommandPreprocessEvent(event.getPlayer(),"/"+commandText);
 					this.getServer().getPluginManager().callEvent(playerCommandPreprocessEvent);
 					if(!playerCommandPreprocessEvent.isCancelled())
